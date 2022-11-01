@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 
 class City(models.Model):
@@ -6,8 +7,9 @@ class City(models.Model):
 
 
 class Shop(models.Model):
-    city = models.ForeignKey(City, on_delete=models.CASCADE)
+    city = models.ForeignKey(City, on_delete=models.PROTECT)
     name = models.CharField(max_length=100)
-    address = models.TextField(max_length=300)
-    postcode = models.CharField(max_length=10)
-    year_opened = models.DateTimeField()
+    code = models.CharField(max_length=10)
+    address = models.TextField(max_length=300, null=True, blank=True)
+    postcode = models.CharField(max_length=10, null=True, blank=True)
+    year_opened = models.DateField(default=timezone.now(), null=True, blank=True)
