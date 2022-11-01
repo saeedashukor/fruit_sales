@@ -19,16 +19,15 @@ class Command(BaseCommand):
             city, shop_name, shop_code = [cell.value for cell in row_cells]
 
             if city not in cities:
-                new_city = City.objects.create(name=city)
-                cities[city] = new_city
+                cities[city] = City.objects.create(name=city)
 
             random_year = '2010'
-            new_shop = Shop.objects.create(city=City.objects.get(name=city),
-                                           name=shop_name,
-                                           code=shop_code,
-                                           address='',
-                                           postcode='',
-                                           year_opened=random_year)
+            Shop.objects.create(city=City.objects.get(name=city),
+                                name=shop_name,
+                                code=shop_code,
+                                address='',
+                                postcode='',
+                                year_opened=random_year)
 
     def handle(self, *args, **options):
         response = input(
