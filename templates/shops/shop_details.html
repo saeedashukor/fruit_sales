@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}{{ shop.name }}{% endblock %}
+{% block body %}
+    <ul>City: {{ shop.city.name }}</ul>
+    <ul>Name: {{ shop.name }}</ul>
+    <ul>Shop code: {{ shop.code }}</ul>
+    <ul>Address: {{ shop.address }}</ul>
+    <ul>Postcode: {{ shop.postcode }}</ul>
+    <ul>Year opened: {{ shop.year_opened }}</ul>
+{% endblock %}
