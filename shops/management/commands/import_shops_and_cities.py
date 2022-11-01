@@ -33,7 +33,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         response = input(
             "You're about to delete all existing shops & cities, do you wish to continue?\nPress 'n' to stop.\n")
-        if response == 'y':
+        if response == 'n':
             return
 
         self.delete_objects()
