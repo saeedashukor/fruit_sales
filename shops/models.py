@@ -12,4 +12,4 @@ class Shop(models.Model):
     code = models.CharField(max_length=10)
     address = models.TextField(max_length=300, null=True, blank=True)
     postcode = models.CharField(max_length=10, null=True, blank=True)
-    year_opened = models.DateField(default=timezone.now(), null=True, blank=True)
+    year_opened = models.IntegerField(null=True, blank=True)
