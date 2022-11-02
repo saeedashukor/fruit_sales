@@ -2,7 +2,13 @@
 {% block title %}City{% endblock %}
 {% block body %}
     <h3>List of cities</h3>
-    {% for city in cities %}
-        <ul><a href="{% url 'shops:city_details' city.id %}">{{ city.name }}</a></ul>
+    {% for city in city_list %}
+        <form action="{% url 'shops:delete_city' city.id %}" method="post">
+        {% csrf_token %}
+        <ul><a href="{% url 'shops:city_details' city.id %}">{{ city.name }}</a>
+            <input type="hidden" name="city_id" id="city_id" value="city.id">
+            <input type="submit" value="Delete">
+        </ul>
+        </form>
     {% endfor %}
 {% endblock %}

@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block body %}
-<h1>Add a city</h1>
+<h1>Add a shop</h1>
 <form action="{% url 'shops:shop_forms' %}" method="post">
     {% csrf_token %}
     {{ form.as_p }}

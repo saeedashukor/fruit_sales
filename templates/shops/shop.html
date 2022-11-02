@@ -2,7 +2,13 @@
 {% block title %}Shop{% endblock %}
 {% block body %}
     <h3>List of shops</h3>
-    {% for shop in shops%}
-        <ul><a href="{% url 'shops:shop_details' shop.id %}">{{ shop.name }}</a></ul>
+    {% for shop in shop_list %}
+        <form action="{% url 'shops:delete_shop' shop.id %}" method="post">
+        {% csrf_token %}
+        <ul><a href="{% url 'shops:shop_details' shop.id %}">{{ shop.name }}</a>
+            <input type="hidden" name="shop_id" id="shop_id" value="shop.id">
+            <input type="submit" value="Delete">
+        </ul>
+        </form>
     {% endfor %}
 {% endblock %}
