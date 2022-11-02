@@ -1,8 +1,10 @@
 from django.views import generic
 from django.shortcuts import render, get_object_or_404
 from itertools import chain
+from django.http import HttpResponseRedirect
 
 from .models import City, Shop
+from .forms import CityForm, ShopForm
 
 
 class IndexView(generic.ListView):
@@ -33,3 +35,25 @@ def show_shops(request):
 def shop_details(request, shop_id):
     shop = get_object_or_404(Shop, pk=shop_id)
     return render(request, 'shops/shop_details.html', {'shop': shop})
+
+
+def city_forms(request):
+    if request.method == 'POST':
+        form = CityForm(request.POST)
+        if form.is_valid():
+            return HttpResponseRedirect('city/add_city')
+    else:  # If GET method or any other method -> create blank form
+        form = CityForm()
+
+    return render(request, 'cities/add_city_form.html', {'form': form})
+
+
+def shop_forms(request):
+    if request.method == 'POST':
+        form = ShopForm(request.POST)
+        if form.is_valid():
+            return HttpResponseRedirect('shop/add_shop')
+    else:  # If GET method or any other method -> create blank form
+        form = ShopForm()
+
+    return render(request, 'shops/add_shop_form.html', {'form': form})
