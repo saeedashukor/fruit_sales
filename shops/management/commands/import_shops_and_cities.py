@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
-from shops.models import City, Shop
 from openpyxl import load_workbook
+
+from shops.models import City, Shop
 
 
 class Command(BaseCommand):
