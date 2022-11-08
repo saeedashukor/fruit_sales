@@ -1,0 +1,27 @@
+{% extends base_template %}
+{% block import_detail %}
+<h3>{{ weekly_sales.shop.name }} {{ weekly_sales.date }}</h3>
+{#<h2>Fruit Sales</h2>#}
+<table>
+{#<tr><th>Fruit</th><th>Units bought</th><th>Cost per unit</th><th>Units sold</th><th>Price per unit</th><th>Unit wastage</th></tr>#}
+    {% for fruit_sale in fruit_sales %}
+  <tr>
+  <td>{{ fruit_sale.fruit }}</td>
+  <td>{{ fruit_sale.units_bought }}</td>
+  <td>{{ fruit_sale.cost_per_unit }}</td>
+  <td>{{ fruit_sale.units_sold }}</td>
+  <td>{{ fruit_sale.price_per_unit }}</td>
+  <td>{{ fruit_sale.units_waste }}</td>
+  </tr>
+    {% endfor %}
+</table>
+
+{#<h3>Overheads</h3>#}
+<table>
+{% for overhead in shop_overheads %}
+    <tr>
+        <td>{{ overhead.overhead_type }}: {{ overhead.cost }}</td>
+    </tr>
+{% endfor %}
+</table>
+{% endblock %}

@@ -1,0 +1,28 @@
+<html>
+<head>
+    <title>Weekly Sales & Overheads</title>
+    {% load static %}
+    <script src="../../static/shops/js/htmx.min.js"></script>
+</head>
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+<form hx-post="{% url 'shops:weekly_sales_form' %}" hx-trigger="change delay:2s">
+<h1>Choose a shop & date</h1>
+
+    Select a shop:
+<select hx-target="#import_detail" name="shop" id="shop" required>
+    <option value="" disabled selected>Select a shop</option>
+    {% for shop in shops %}
+        <option value="{{ shop.name }}">{{ shop.name }}</option>
+    {% endfor %}
+</select><br><br>
+
+Select a date:
+<input type="date" placeholder="Date" hx-target="#import_detail" id="date" name="date" value="2018-01-01" min="2018-01-01" max="2021-12-31" required>
+</form>
+
+<div id="import_detail">
+    {% block import_detail %}
+    {% endblock %}
+</div>
+</body>
+</html>
