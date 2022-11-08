@@ -1,18 +1,18 @@
+{% load static %}
 <html>
 <head>
     <title>Weekly Sales & Overheads</title>
-    {% load static %}
     <script src="../../static/shops/js/htmx.min.js"></script>
 </head>
 <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
-<form hx-post="{% url 'shops:weekly_sales_form' %}" hx-trigger="change delay:2s">
+<form hx-post="{% url 'shops:view_weekly_sales_form' %}" hx-trigger="change delay:2s">
 <h1>Choose a shop & date</h1>
 
     Select a shop:
 <select hx-target="#import_detail" name="shop" id="shop" required>
     <option value="" disabled selected>Select a shop</option>
     {% for shop in shops %}
-        <option value="{{ shop.name }}">{{ shop.name }}</option>
+        <option value="{{ shop.id }},{{ shop.name }}">{{ shop.name }}</option>
     {% endfor %}
 </select><br><br>
 

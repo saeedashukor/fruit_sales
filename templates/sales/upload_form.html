@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block body %}
+<h1>Upload weekly sales spreadsheet</h1>
+<form action="{% url 'shops:upload_weekly_data' %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <br>
+    <input type="submit" value="Submit">
+</form>
+{% endblock %}
