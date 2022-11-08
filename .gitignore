@@ -12,3 +12,4 @@ __pycache__
 *.xlsx
 weekly_shop_data
 weekly_shop_data_small
+static/admin

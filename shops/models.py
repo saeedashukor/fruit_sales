@@ -17,12 +17,12 @@ class Shop(models.Model):
     year_opened = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
-        return f'{self.name}, {self.code}, {self.city}, {self.address}, {self.postcode}, {self.year_opened}'
+        return f'{self.name}, {self.code}'
 
 
 class WeeklySales(models.Model):
-    date = models.DateField()
-    shop = models.ForeignKey(Shop, on_delete=models.CASCADE)
+    date = models.DateField('pub_date')
+    shop = models.ForeignKey(Shop, on_delete=models.PROTECT)
 
     def __str__(self):
         return f'{self.shop} : {self.date}'
@@ -37,7 +37,7 @@ class Fruit(models.Model):
 
 class FruitSales(models.Model):
     weekly_sales = models.ForeignKey(WeeklySales, on_delete=models.CASCADE)
-    fruit = models.ForeignKey(Fruit, on_delete=models.CASCADE)
+    fruit = models.ForeignKey(Fruit, on_delete=models.PROTECT)
     units_bought = models.IntegerField()
     cost_per_unit = models.DecimalField(max_digits=6, decimal_places=2)
     units_sold = models.IntegerField()
@@ -50,12 +50,12 @@ class FruitSales(models.Model):
 
 class ShopOverheads(models.Model):
     class OverheadType(models.TextChoices):
-        personnel = ('PERS', 'personnel')
-        premises = ('PREM', 'premises')
-        other_oh = ('OTHER', 'other overheads')
+        personnel = 'PERS', 'personnel'
+        premises = 'PREM', 'premises'
+        other_oh = 'OTHER', 'other overheads'
 
     weekly_sales = models.ForeignKey(WeeklySales, on_delete=models.CASCADE)
-    overhead_type = models.CharField(max_length=30, choices=OverheadType.choices)
+    overhead_type = models.CharField(max_length=10, choices=OverheadType.choices)
     cost = models.IntegerField()
 
     def __str__(self):
