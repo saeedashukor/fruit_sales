@@ -33,9 +33,10 @@ class WeeklySales(models.Model):
 
 class Fruit(models.Model):
     name = models.CharField(max_length=30, unique=True)
+    units = models.CharField(max_length=20, null=True, blank=True)
 
     def __str__(self):
-        return f'{self.name}'
+        return f'{self.name} - {self.units}'
 
 
 class FruitSales(models.Model):
