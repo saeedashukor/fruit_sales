@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import FileExtensionValidator
 
 
 class City(models.Model):
@@ -23,6 +24,8 @@ class Shop(models.Model):
 class WeeklySales(models.Model):
     date = models.DateField('pub_date')
     shop = models.ForeignKey(Shop, on_delete=models.PROTECT)
+    file = models.FileField(validators=[FileExtensionValidator(allowed_extensions=['xlsx'])],
+                            null=True, blank=True)
 
     def __str__(self):
         return f'{self.shop} : {self.date}'
@@ -60,3 +63,4 @@ class ShopOverheads(models.Model):
 
     def __str__(self):
         return f'{self.weekly_sales}, {self.overhead_type}, {self.cost}'
+

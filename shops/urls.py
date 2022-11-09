@@ -15,5 +15,6 @@ urlpatterns = [
     path('shop/<int:pk>/delete', views.DeleteShop.as_view(), name='delete_shop'),
     path('weekly_import/<int:pk>/<int:year>/<str:month>/<int:day>/<str:shop_code>', views.WeeklySalesView.as_view(
         date_field='date', model=WeeklySales), name='weekly_sales'),
-    path('weekly_import/', views.weekly_sales_form, name='weekly_sales_form')
+    path('weekly_import/', views.view_weekly_sales_form, name='view_weekly_sales_form'),
+    path('upload/', views.upload_file, name='upload_weekly_data')
 ]

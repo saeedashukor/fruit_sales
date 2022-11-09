@@ -18,13 +18,22 @@ class ShopForm(ModelForm):
         model = Shop
         fields = ['city', 'name', 'code', 'address', 'postcode', 'year_opened']
 
+
 class DateInput(forms.DateInput):
     input_type = 'date'
 
-class WeeklySalesForm(ModelForm):
+
+class ViewWeeklySalesForm(ModelForm):
     class Meta:
         model = WeeklySales
         fields = ['shop', 'date']
         labels = {'shop': ('Select shop'),
                   'date': ('Select date')}
         widgets = {'date': DateInput}
+
+
+class UploadWeeklySalesForm(ModelForm):
+    class Meta:
+        model = WeeklySales
+        fields = ['file']
+        labels = {'file': ('Upload a file')}

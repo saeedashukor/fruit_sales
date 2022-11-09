@@ -1,17 +1,17 @@
-import os.path
-
 from django.views import generic
 from django.shortcuts import render
 from django.urls import reverse, reverse_lazy
-from django.http import HttpResponse, HttpResponseRedirect, Http404
+from django.http import HttpResponseRedirect, Http404
 from django.db.models import ProtectedError
-from django.template.loader import render_to_string
+from django.core.files.storage import default_storage
+from django.contrib import messages
+
 from itertools import chain
 from datetime import datetime
 from dateutil.relativedelta import *
 
-from .models import City, Shop, WeeklySales, FruitSales, ShopOverheads
-from .forms import CityForm, ShopForm, WeeklySalesForm
+from .models import City, Shop, WeeklySales
+from .forms import CityForm, ShopForm, UploadWeeklySalesForm
 
 
 class IndexView(generic.ListView):
@@ -79,38 +79,39 @@ class WeeklySalesView(generic.DateDetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        date_str = str(self.kwargs['day']) + '-' + str(self.kwargs['month']) + '-' + str(self.kwargs['year'])
+        date_str = f"{self.kwargs['day']}-{self.kwargs['month']}-{self.kwargs['year']}"
         date = datetime.strptime(date_str, '%d-%b-%Y')
         shop = Shop.objects.get(code=self.kwargs['shop_code'])
-        context['weekly_sales'] = WeeklySales.objects.get(shop=shop, date=date)
-        context['fruit_sales'] = FruitSales.objects.filter(weekly_sales=context['weekly_sales'])
-        context['shop_overheads'] = ShopOverheads.objects.filter(weekly_sales=context['weekly_sales'])
-        context['base_template'] = 'sales/weekly_sales_page.html'
+        weekly_sales = WeeklySales.objects.get(shop=shop, date=date)
+        context['weekly_sales'] = weekly_sales
+        context['fruit_sales'] = weekly_sales.fruitsales_set.all()
+        context['shop_overheads'] = weekly_sales.shopoverheads_set.all()
+        context['base_template'] = 'sales/weekly_sales_partial.html'
         return context
 
 
-def weekly_sales_form(request):
+def view_weekly_sales_form(request):
     shops = Shop.objects.all()
-    context = {'shops': shops,
-               'weekly_sales': '',
-               'fruit_sales': '',
-               'shop_overheads': ''}
+    context = {'shops': shops}
 
     if request.method == 'POST':
-        context['base_template'] = 'sales/weekly_sales_page.html'
+        context['base_template'] = 'sales/weekly_sales_partial.html'
         date = request.POST.get('date')
-        shop_name = request.POST.get('shop')
+        shop_data = request.POST.get('shop').split(',')
+        shop_id = int(shop_data[0])
+        shop_name = shop_data[1]
         date_ = datetime.strptime(str(date), "%Y-%m-%d")
-        shop = Shop.objects.get(name=shop_name)
+        shop = Shop.objects.get(pk=shop_id, name=shop_name)
         if date_.weekday() != 0:
-            monday = date_ + relativedelta(weekday=MO(-1))
-            context['weekly_sales'] = WeeklySales.objects.get(shop=shop, date=monday)
+            weekly_sales = WeeklySales.objects.get(shop=shop,
+                                                   date=date_ + relativedelta(weekday=MO(-1)))
         else:
-            context['weekly_sales'] = WeeklySales.objects.get(shop=shop, date=date)
-        context['fruit_sales'] = FruitSales.objects.filter(weekly_sales=context['weekly_sales'])
-        context['shop_overheads'] = ShopOverheads.objects.filter(weekly_sales=context['weekly_sales'])
+            weekly_sales = WeeklySales.objects.get(shop=shop, date=date)
+        context['weekly_sales'] = weekly_sales
+        context['fruit_sales'] = weekly_sales.fruitsales_set.all()
+        context['shop_overheads'] = weekly_sales.shopoverheads_set.all()
     else:
-        context['base_template'] = 'sales/weekly_sales_form.html'
+        context['base_template'] = 'sales/weekly_sales_base.html'
     return render(request, 'sales/weekly_sales.html', context)
 
 
@@ -141,3 +142,46 @@ def shop_forms(request):
         form = ShopForm()
 
     return render(request, 'shops/add_shop_form.html', {'form': form})
+
+
+def upload_file(request):
+    def parse_file(file):
+        file_str = file.name
+        file = file_str.strip('.xlsx')
+        file = file.split('-')
+        date, shop_code = '-'.join(file[:3]), file[3:][0]
+        date = datetime.strptime(date, '%Y-%m-%d')
+        return date, shop_code
+
+    def validate_file(file, date, shop_code):
+        if not Shop.objects.filter(code=shop_code).exists():
+            return False, f'Shop with code {shop_code} does not exist'
+        elif date.weekday() != 0:
+            return False, 'Date does not fall on a Monday'
+        elif date >= datetime.today():
+            return False, 'Date of weekly sale record exceeds today'
+        elif date.year <= Shop.objects.get(code=shop_code).year_opened:
+            return False, 'Year of weekly sale record is before year opened of Shop'
+        elif WeeklySales.objects.filter(date=date, shop=Shop.objects.get(code=shop_code)).exists():
+            return False, f'A record already exists with the same date: {date} and shop code: {shop_code}'
+        return True, f'File {file.name} successfully uploaded'
+
+    if request.method == 'POST' and UploadWeeklySalesForm(request.POST, request.FILES).is_valid():
+        form = UploadWeeklySalesForm(request.POST, request.FILES)
+        file = request.FILES['file']
+        date, shop_code = parse_file(file)
+        status, message = validate_file(file, date, shop_code)
+        if status:
+            WeeklySales.objects.create(date=date,
+                                       shop=Shop.objects.get(code=shop_code),
+                                       file=file)
+            default_storage.save('shops/uploads/' + request.FILES['file'].name, request.FILES['file'])
+            messages.success(request, message)
+            print('Success:', message)
+            return HttpResponseRedirect(reverse('shops:upload_weekly_data'))
+        else:
+            print('Unsuccessful:', message)
+            messages.error(request, message)
+    else:
+        form = UploadWeeklySalesForm()
+    return render(request, 'sales/upload_form.html', {'form': form})

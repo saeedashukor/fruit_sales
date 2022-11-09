@@ -19,9 +19,6 @@ class Command(BaseCommand):
         fruits = set()  # store all unique fruit names
 
         for file in files:
-            if count == 40:
-                break
-
             self.load_file(pathname, file, fruits)
             count += 1
             print(f'Imported {count}/{len(files)}: {file}')
@@ -33,7 +30,7 @@ class Command(BaseCommand):
 
         date, shop_code = self.parse_spreadsheet(file)
         shop = Shop.objects.get(code=shop_code)
-        self.create_weekly_sales(date, shop)
+        self.create_weekly_sales(date, shop, file)
         weekly_sales = WeeklySales.objects.get(date=date, shop=shop)
 
         for row_cells in ws_fruit.iter_rows(min_row=2):
@@ -60,8 +57,8 @@ class Command(BaseCommand):
         date = datetime.strptime(date, '%Y-%m-%d')
         return date, shop_code
 
-    def create_weekly_sales(self, date, shop):
-        WeeklySales.objects.create(date=date, shop=shop)
+    def create_weekly_sales(self, date, shop, file):
+        WeeklySales.objects.create(date=date, shop=shop, file=file)
 
     def create_fruit_sales(self, weekly_sales, fruit, units_bought, cost, units_sold, price, wastage):
         fruit = Fruit.objects.get(name=fruit)
