@@ -156,32 +156,39 @@ def upload_file(request):
     def validate_file(file, date, shop_code):
         if not Shop.objects.filter(code=shop_code).exists():
             return False, f'Shop with code {shop_code} does not exist'
-        elif date.weekday() != 0:
-            return False, 'Date does not fall on a Monday'
-        elif date >= datetime.today():
-            return False, 'Date of weekly sale record exceeds today'
-        elif date.year <= Shop.objects.get(code=shop_code).year_opened:
-            return False, 'Year of weekly sale record is before year opened of Shop'
-        elif WeeklySales.objects.filter(date=date, shop=Shop.objects.get(code=shop_code)).exists():
+
+        if date.weekday() != 0:
+            return False, f'Date ({date}) does not fall on a Monday'
+
+        if date > datetime.today():
+            return False, f'Date of weekly sale record ({date}) exceeds today ({datetime.today()})'
+
+        year_opened = Shop.objects.get(code=shop_code).year_opened
+        if date.year < year_opened:
+            return False, f'Year of weekly sale record ({date.year}) is before year opened of Shop ({year_opened})'
+
+        if WeeklySales.objects.filter(date=date, shop=Shop.objects.get(code=shop_code)).exists():
             return False, f'A record already exists with the same date: {date} and shop code: {shop_code}'
+
         return True, f'File {file.name} successfully uploaded'
 
-    if request.method == 'POST' and UploadWeeklySalesForm(request.POST, request.FILES).is_valid():
+    if request.method == 'POST':
         form = UploadWeeklySalesForm(request.POST, request.FILES)
-        file = request.FILES['file']
-        date, shop_code = parse_file(file)
-        status, message = validate_file(file, date, shop_code)
-        if status:
-            WeeklySales.objects.create(date=date,
-                                       shop=Shop.objects.get(code=shop_code),
-                                       file=file)
-            default_storage.save('shops/uploads/' + request.FILES['file'].name, request.FILES['file'])
-            messages.success(request, message)
-            print('Success:', message)
-            return HttpResponseRedirect(reverse('shops:upload_weekly_data'))
-        else:
-            print('Unsuccessful:', message)
-            messages.error(request, message)
+        if form.is_valid():
+            file = request.FILES['file']
+            date, shop_code = parse_file(file)
+            success, message = validate_file(file, date, shop_code)
+
+            if success:
+                weekly_sales = form.instance
+                weekly_sales.date = date
+                weekly_sales.shop = Shop.objects.get(code=shop_code)
+                form.save()
+                default_storage.save('shops/uploads/' + request.FILES['file'].name, request.FILES['file'])
+                messages.success(request, message)
+                return HttpResponseRedirect(reverse('shops:upload_weekly_data'))
+            else:
+                messages.error(request, message)
     else:
         form = UploadWeeklySalesForm()
     return render(request, 'sales/upload_form.html', {'form': form})

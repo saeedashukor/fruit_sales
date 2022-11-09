@@ -10,6 +10,8 @@ db.sqlite3
 venv
 __pycache__
 *.xlsx
+*.yaml
 weekly_shop_data
 weekly_shop_data_small
 static/admin
+shops/uploads
