@@ -153,42 +153,17 @@ def upload_file(request):
         date = datetime.strptime(date, '%Y-%m-%d')
         return date, shop_code
 
-    def validate_file(file, date, shop_code):
-        if not Shop.objects.filter(code=shop_code).exists():
-            return False, f'Shop with code {shop_code} does not exist'
-
-        if date.weekday() != 0:
-            return False, f'Date ({date}) does not fall on a Monday'
-
-        if date > datetime.today():
-            return False, f'Date of weekly sale record ({date}) exceeds today ({datetime.today()})'
-
-        year_opened = Shop.objects.get(code=shop_code).year_opened
-        if date.year < year_opened:
-            return False, f'Year of weekly sale record ({date.year}) is before year opened of Shop ({year_opened})'
-
-        if WeeklySales.objects.filter(date=date, shop=Shop.objects.get(code=shop_code)).exists():
-            return False, f'A record already exists with the same date: {date} and shop code: {shop_code}'
-
-        return True, f'File {file.name} successfully uploaded'
-
     if request.method == 'POST':
         form = UploadWeeklySalesForm(request.POST, request.FILES)
         if form.is_valid():
             file = request.FILES['file']
             date, shop_code = parse_file(file)
-            success, message = validate_file(file, date, shop_code)
-
-            if success:
-                weekly_sales = form.instance
-                weekly_sales.date = date
-                weekly_sales.shop = Shop.objects.get(code=shop_code)
-                form.save()
-                default_storage.save('shops/uploads/' + request.FILES['file'].name, request.FILES['file'])
-                messages.success(request, message)
-                return HttpResponseRedirect(reverse('shops:upload_weekly_data'))
-            else:
-                messages.error(request, message)
+            weekly_sales = form.instance
+            weekly_sales.date = date
+            weekly_sales.shop = Shop.objects.get(code=shop_code)
+            form.save()
+            default_storage.save('shops/uploads/' + request.FILES['file'].name, request.FILES['file'])
+            return HttpResponseRedirect(reverse('shops:upload_weekly_data'))
     else:
         form = UploadWeeklySalesForm()
     return render(request, 'sales/upload_form.html', {'form': form})
