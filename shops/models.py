@@ -1,7 +1,5 @@
 from django.db import models
 from django.core.validators import FileExtensionValidator
-from django.db.models import F, Sum
-from datetime import datetime
 
 
 class City(models.Model):
