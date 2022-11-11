@@ -16,5 +16,6 @@ urlpatterns = [
     path('weekly_import/<int:pk>/<int:year>/<str:month>/<int:day>/<str:shop_code>', views.WeeklySalesView.as_view(
         date_field='date', model=WeeklySales), name='weekly_sales'),
     path('weekly_import/', views.view_weekly_sales_form, name='view_weekly_sales_form'),
-    path('upload/', views.upload_file, name='upload_weekly_data')
+    path('upload/', views.upload_file, name='upload_weekly_data'),
+    path('fruit_income/all', views.view_fruit_income_all, name='view_fruit_income_all')
 ]
