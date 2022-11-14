@@ -1,0 +1,25 @@
+<table>
+    <tr>
+    <th>Date (every 4 weeks)</th>
+        {% for fruit in fruits %}
+            <th>{{ fruit }}</th>
+        {% endfor %}
+    </tr>
+        {% for dict in total_income %}
+            <tr>
+            <td>{{ dict.date }}</td>
+            <td>{{ dict.aardbei }}</td>
+            <td>{{ dict.abrikoos }}</td>
+            <td>{{ dict.ananas }}</td>
+            <td>{{ dict.appel }}</td>
+            <td>{{ dict.avocado }}</td>
+            <td>{{ dict.banaan }}</td>
+            <td>{{ dict.blauwebes }}</td>
+            <td>{{ dict.citroen }}</td>
+            <td>{{ dict.framboos }}</td>
+            <td>{{ dict.meloen }}</td>
+            <td>{{ dict.peer }}</td>
+            <td>{{ dict.sinaasappel }}</td>
+            </tr>
+        {% endfor %}
+</table>

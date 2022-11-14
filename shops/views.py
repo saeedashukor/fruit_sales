@@ -2,7 +2,7 @@ from django.views import generic
 from django.shortcuts import render
 from django.urls import reverse, reverse_lazy
 from django.http import HttpResponseRedirect, Http404
-from django.db.models import ProtectedError
+from django.db.models import ProtectedError, F, Sum
 from django.core.files.storage import default_storage
 from django.contrib import messages
 
@@ -10,7 +10,7 @@ from itertools import chain
 from datetime import datetime
 from dateutil.relativedelta import *
 
-from .models import City, Shop, WeeklySales
+from .models import City, Shop, WeeklySales, Fruit, FruitSales
 from .forms import CityForm, ShopForm, UploadWeeklySalesForm
 
 
@@ -164,6 +164,50 @@ def upload_file(request):
             form.save()
             default_storage.save('shops/uploads/' + request.FILES['file'].name, request.FILES['file'])
             return HttpResponseRedirect(reverse('shops:upload_weekly_data'))
+        else:
+            messages.error(request, 'Error')
     else:
         form = UploadWeeklySalesForm()
     return render(request, 'sales/upload_form.html', {'form': form})
+
+
+def view_fruit_income_all(request):
+    fruits, total_income = get_total_fruit_income()
+    context = {'fruits': fruits, 'total_income': total_income}
+    return render(request, 'fruit_income/fruit_income_all_shops.html', context)
+
+
+def get_income_dates(start_date=None, end_date=None):
+    if not start_date and not end_date:
+        return WeeklySales.objects.values('date').distinct()
+    else:
+        return WeeklySales.objects.filter(date__lte=end_date, date__gte=start_date).values('date').distinct()
+
+
+def get_fruit_income(fruit, start_date, end_date, shop=None):
+    if not shop:
+        return FruitSales.objects.filter(fruit__name=fruit,
+                                         weekly_sales__date__range=(start_date, end_date)
+                                         ).aggregate(income=Sum(F('units_sold') * F('price_per_unit')))
+    else:
+        return FruitSales.objects.filter(fruit__name=fruit,
+                                         weekly_sales__shop=shop,
+                                         weekly_sales__date__range=(start_date, end_date)
+                                         ).aggregate(income=Sum(F('units_sold') * F('price_per_unit')))
+
+
+def get_total_fruit_income(shop=None, start_date=None, end_date=None):
+    fruits = list(Fruit.objects.values_list('name', flat=True))
+    total_income = []
+    dates = get_income_dates(start_date, end_date)
+    for i in range(0, len(dates) - 4, 4):
+        start_date = dates[i]['date'].strftime('%Y-%m-%d')
+        end_date = dates[i + 3]['date'].strftime('%Y-%m-%d')
+        fruit_income = {'date': start_date}
+        for fruit in fruits:
+            income = get_fruit_income(fruit, start_date, end_date, shop)
+            if fruit == 'blauwe bes':
+                fruit = 'blauwebes'
+            fruit_income[fruit] = round(float(income['income']), 2)
+        total_income.append(fruit_income)
+    return fruits, total_income
